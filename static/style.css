@@ -260,3 +260,58 @@ textarea {
     page-break-after: avoid;
   }
 }
+
+.form-container {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+#form-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+#query {
+  width: 500px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#results-pagination {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+.result-item {
+  margin-bottom: 50px;
+}
+
+button {
+  padding: 4px;
+}
+
+.line-col {
+  width: 80px;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
+
+.flex-items-center{
+  display: flex;
+  justify-content: center;
+}
+
+.margin-y {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}

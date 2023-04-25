@@ -1,27 +1,56 @@
-<!doctype html>
+<!DOCTYPE html>
 <html class="no-js" lang="">
+  <head>
+    <meta charset="utf-8" />
+    <title>ShakeSearch</title>
+    <link rel="stylesheet" href="style.css" />
+    <meta name="theme-color" content="#fafafa" />
+  </head>
 
-<head>
-  <meta charset="utf-8">
-  <title>ShakeSearch</title>
-  <link rel="stylesheet" href="style.css">
-  <meta name="theme-color" content="#fafafa">
-</head>
-
-<body>
-    <p>
+  <body>
+    <div class="form-container">
+      <h1>Search the complete works of Shakespeare!</h1>
+      <div>
         <form id="form">
-            <label for="query">Query</label>
-            <input type="text" id="query" name="query">
+          <div>
+            <input type="text" id="query" name="query" />
             <button type="submit">Search</button>
+          </div>
+          <div class="flex-row margin-y">
+            <div class="flex-items-center">
+              <label for="casesensitive">Case-sensitive:</label>
+              <input type="checkbox" name="casesensitive" />
+            </div>
+            <div class="flex-items-center">
+              <label for="contextlines">Context Lines:</label>
+              <select name="contextlines" id="contextlines">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="3" selected="selected">3</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+              </select>
+            </div>
+          </div>
         </form>
-    </p>
-    <p>
-        <table id="table">
-          <tbody id="table-body"></tbody>
-        </table>
-    </p>
-  <script src="app.js"></script>
-</body>
-
+      </div>
+    </div>
+    <hr />
+    <div id="loading" class="hidden">Loading...</div>
+    <div id="results-container" class="hidden">
+      <div id="results-list">
+        <div id="results-header">
+          <h2>Results</h2>
+          <div class="flex-row">
+            <div class="line-col">Line</div>
+            <div>Content</div>
+          </div>  
+        </div>
+      </div>
+      <div id="results-pagination">
+        <button id="more-button">More Results</button>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
 </html>

@@ -1,18 +1,18 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"index/suffixarray"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+
+	"pulley.com/shakesearch/searcher"
 )
 
 func main() {
-	searcher := Searcher{}
+	searcher := searcher.Searcher{}
 	err := searcher.Load("completeworks.txt")
 	if err != nil {
 		log.Fatal(err)
@@ -35,48 +35,59 @@ func main() {
 	}
 }
 
-type Searcher struct {
-	CompleteWorks string
-	SuffixArray   *suffixarray.Index
-}
-
-func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request) {
+func handleSearch(searcher searcher.Searcher) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		query, ok := r.URL.Query()["q"]
-		if !ok || len(query[0]) < 1 {
+		urlQueryValues := r.URL.Query()
+		query, ok := urlQueryValues["q"]
+		if !ok || len(query[0]) == 0 {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("missing search query in URL params"))
 			return
 		}
-		results := searcher.Search(query[0])
-		buf := &bytes.Buffer{}
-		enc := json.NewEncoder(buf)
-		err := enc.Encode(results)
+		offset, ok := urlQueryValues["offset"]
+		if !ok || len(offset[0]) == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("missing offset in URL params"))
+			return
+		}
+		offsetInt, err := strconv.Atoi(offset[0])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("offset param needs to be an integer"))
+			return
+		}
+		contextLines, ok := urlQueryValues["contextlines"]
+		if !ok || len(contextLines) == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("missing contextlines in URL params"))
+			return
+		}
+		contextLinesInt, err := strconv.Atoi(contextLines[0])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("contextlines param needs to be an integer"))
+			return
+		}
+		caseSensitive, ok := urlQueryValues["case"]
+		if !ok || len(caseSensitive) == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("missing case in URL params"))
+			return
+		}
+		caseSensitiveBool, err := strconv.ParseBool(caseSensitive[0])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("caseSensitive param needs to be an boolean"))
+			return
+		}
+		results := searcher.Search(query[0], contextLinesInt, offsetInt, 10, caseSensitiveBool)
+		resultsJson, err := json.Marshal(results)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("encoding failure"))
+			w.Write([]byte("convert json failure"))
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(buf.Bytes())
+		w.Write(resultsJson)
 	}
-}
-
-func (s *Searcher) Load(filename string) error {
-	dat, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return fmt.Errorf("Load: %w", err)
-	}
-	s.CompleteWorks = string(dat)
-	s.SuffixArray = suffixarray.New(dat)
-	return nil
-}
-
-func (s *Searcher) Search(query string) []string {
-	idxs := s.SuffixArray.Lookup([]byte(query), -1)
-	results := []string{}
-	for _, idx := range idxs {
-		results = append(results, s.CompleteWorks[idx-250:idx+250])
-	}
-	return results
 }
