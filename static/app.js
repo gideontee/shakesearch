@@ -4,23 +4,80 @@ const Controller = {
   caseSensitive: true,
   contextLines: 5,
 
-  setSearchQuery: (ev) => {
-    ev.preventDefault();
-    const form = document.getElementById("form");
-    const data = Object.fromEntries(new FormData(form));
-
+  showLoading: (shouldShow) => {
     const loadingNode = document.getElementById("loading");
-    loadingNode.classList.remove("hidden");
+    if (shouldShow) {
+      loadingNode.classList.remove("d-none");
+    } else {
+      loadingNode.classList.add("d-none");
+    }
+  },
 
-    const resultList = document.getElementsByClassName("result-item");
+  showResults: (shouldShow) => {
+    const node = document.getElementById("results-container");
+    if (shouldShow) {
+      node.classList.remove("d-none");
+    } else {
+      node.classList.add("d-none");
+    }
+  },
+
+  showNoResultsMessage: (shouldShow) => {
+    const node = document.getElementById("no-results");
+    if (shouldShow) {
+      node.classList.remove("d-none");
+    } else {
+      node.classList.add("d-none");
+    }
+  },
+
+  showMoreButton: (shouldShow) => {
+    const moreButton = document.getElementById("more-button");
+    if (shouldShow) {
+      moreButton.classList.remove("d-none");
+    } else {
+      moreButton.classList.add("d-none");
+    }
+  },
+
+  clearResults: () => {
+    const tbody = document.getElementsByTagName("tbody")[0];
+    const resultList = tbody.getElementsByTagName("tr");
     Array.from(resultList).forEach((item) => {
       item.parentNode.removeChild(item);
     });
+  },
 
-    const noFoundMessageNode = document.getElementById("no-results");
-    if (noFoundMessageNode) {
-      noFoundMessageNode.parentNode.removeChild(noFoundMessageNode);
-    }
+  createResultItem: (context) => {
+    const row = document.createElement("tr");
+    const lineCol = document.createElement("td");
+    const contentCol = document.createElement("td");
+    Object.keys(context).forEach((row) => {
+      const lineEntry = document.createElement("div");
+      const contentEntry = document.createElement("div");
+      lineEntry.innerHTML = `${row}`;
+      contentEntry.innerHTML = `${context[row]}`;
+      if (contentEntry.innerHTML === "") {
+        contentEntry.classList.add("d-inline-block");
+      }
+
+      lineCol.appendChild(lineEntry);
+      contentCol.appendChild(contentEntry);
+    });
+    row.appendChild(lineCol);
+    row.appendChild(contentCol);
+    return row;
+  },
+
+  setSearchQuery: (ev) => {
+    ev.preventDefault();
+    Controller.showResults(false);
+    Controller.showNoResultsMessage(false);
+    Controller.showLoading(true);
+    Controller.clearResults();
+
+    const form = document.getElementById("form");
+    const data = Object.fromEntries(new FormData(form));
 
     Controller.query = data.query;
     Controller.caseSensitive = data.casesensitive ? true : false;
@@ -40,54 +97,26 @@ const Controller = {
   },
 
   updateTable: (results) => {
-    const loadingNode = document.getElementById("loading");
-    loadingNode.classList.add("hidden");
+    Controller.showLoading(false);
+    Controller.showResults(true);
 
-    const tableContainer = document.getElementById("results-container");
-    tableContainer.classList.remove("hidden");
+    const resultList = document.getElementById("content");
 
-    const resultList = document.getElementById("results-list");
-    const moreButton = document.getElementById("more-button");
     if (results.Rows.length === 0) {
-      moreButton.classList.add("hidden");
+      Controller.showMoreButton(false);
       const resultItems = document.getElementsByClassName("result-item");
       if (resultItems.length == 0) {
-        resultList.classList.add("hidden");
-        if (!document.getElementById("no-results")) {
-          const noFoundMessageNode = document.createElement("p");
-          noFoundMessageNode.setAttribute("id", "no-results");
-          noFoundMessageNode.innerHTML =
-            "No results found. Please try a different query.";
-          tableContainer.appendChild(noFoundMessageNode);
-        }
+        Controller.showResults(false);
+        Controller.showNoResultsMessage(true);
       }
     } else {
-      resultList.classList.remove("hidden");
-      moreButton.classList.remove("hidden");
-      const noFoundMessageNode = document.getElementById("no-results");
-      if (noFoundMessageNode) tableContainer.removeChild(noFoundMessageNode[0]);
+      Controller.showResults(true);
+      Controller.showMoreButton(true);
+      Controller.showNoResultsMessage(false);
     }
 
     for (let result of results.Rows) {
-      const node = document.createElement("div");
-      node.classList.add("result-item");
-
-      Object.keys(result.Context).forEach((row) => {
-        const lineNode = document.createElement("div");
-        lineNode.classList.add("flex-row");
-
-        const lineCol = document.createElement("div");
-        lineCol.classList.add("line-col");
-        lineCol.innerHTML = `${row}`;
-
-        const contentCol = document.createElement("div");
-        contentCol.innerHTML = `${result.Context[row]}`;
-
-        lineNode.appendChild(lineCol);
-        lineNode.appendChild(contentCol);
-        node.appendChild(lineNode);
-      });
-      resultList.appendChild(node);
+      resultList.appendChild(Controller.createResultItem(result.Context));
     }
     Controller.offset = results.Offset;
   },
