@@ -29,11 +29,16 @@ We will be primarily evaluating based on how well the search works for users. A 
 2. Render (render.com) hosting, the application deploys cleanly from a public url.
 3. In your submission, share with us what changes you made and how you would prioritize changes if you had more time.
 
+---
 ## CHANGES
 
 Render hosting link - https://gideontee-shakesearch.onrender.com
 
-I've added the following features:
+Note: the time to return a result seems to be slow on onrender.com (~3secs). The results returns within 200ms on my local machine. 
+
+### User Features
+Since the mission is to think about the problem from the user's perspective, I've prioritized the user-facing features and improving their search experience.
+
 1. **Results with line number**. 
 
     The line number is shown alongside the search results. I believe this is the most helpful feature for a user as it tells the user where in the book the text can be found.
@@ -41,7 +46,7 @@ I've added the following features:
 
 2. **Results with context lines**.
 
-    It shows context before and after the line where the text is found. This provides context to the user. The number of lines for context can be adjusted within the dropdown menu.
+    It shows the lines before and after the search query. This provides context to the user. The number of lines for context can be adjusted within the dropdown menu.
     
     
 3. **Pagination**. 
@@ -61,16 +66,50 @@ I've added the following features:
 6. **Exact Phrase search**. 
 
     The entire string needs to be in double-quotes and it should be the only query in the search bar.
+
+### Code Structure
+
+I have made changes to both the front-end and the back-end of the code. 
+
+**Front-end Changes**
+
+- Integrated with [Bootstrap](https://getbootstrap.com/) for styling enhancements.
+- Removed the provided css file.
+- Add toggles and a dropdown menu for customizing the search functionality.
+
+
+**Back-end Changes**
+- Changed the search functionality to search by line. This allows us to provide the user the line number. However, this increases the search runtime complexity from O(log(N)*len(s) + len(result)) where N is the size of the text and s is the search query to O(M*log(N)*len(s) + len(result)) where M is the number of lines of the text and N is the size of the text.
+
+### If I had more time
+
+#### User Features
+1. Allow the user to expand the context lines of a particular search result. We would have a "top" and "bottom" button for users to expand more text to the top or bottom from the query. This is similar to Github Pull Request Code Review where you can expand to see more code from the diff.
+
+2. Add the ability for a user to jump right to the main text from the search results and allow them to scroll and read the main text within the web application.
+
+3. Add the option for auto spelling correction to the search queries. This would require integrating an external library or building a framework to detect wrong spellings and choose the closest valid word from it. 
+
+#### Code Health
+If this code was meant for production, I would add the following:
+
+- Unit tests
+
+    Unit tests to the back-end functions (`formatResults`, `markResults`). 
     
----
+- Integration Tests
 
-If I had more time, I would add the following features:
+    Integration tests between the front-end and back-end APIs.
+    
+- Front-end tests. UI tests
 
-User Facing Features:
-1. Add the ability for a user to jump right to the main text from the search results and allow them to scroll and read the main text within the web application.
-2. Improve the styling of the web application to look better (CSS)
-3. Add the option for auto spelling correction to the search queries
+- End-to-end tests
 
-Non-User Facing Features:
-1. Improve the search runtime performance. Right now the runtime is linear in terms of the total number of lines of the text.
- 
+I would also encapsulate the functions better to make it extensible. 
+
+For the front-end, I would consider using a UI framework such as Vue.js or React.js to make it easier to manage the state on the front-end. Right now, we just pure JavaScript to query and modify the HTML elements, which is not ideal for a application in production.
+
+
+#### Backend Performance
+
+I would improve the search runtime complexity. Right now, it scans line by line and does a suffix search on the line. I would want to improve this to try to make this logarithmic time generally. One idea I have is to mark each word in the text to a line number. So when we search the entire text, each index would be associated with the line number.

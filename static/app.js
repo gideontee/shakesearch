@@ -55,7 +55,7 @@ const Controller = {
     Object.keys(context).forEach((row) => {
       const lineEntry = document.createElement("div");
       const contentEntry = document.createElement("div");
-      lineEntry.innerHTML = `${row}`;
+      lineEntry.innerHTML = Number(row).toLocaleString();
       contentEntry.innerHTML = `${context[row]}`;
       if (contentEntry.innerHTML === "") {
         contentEntry.classList.add("d-inline-block");
@@ -104,8 +104,9 @@ const Controller = {
 
     if (results.Rows.length === 0) {
       Controller.showMoreButton(false);
-      const resultItems = document.getElementsByClassName("result-item");
-      if (resultItems.length == 0) {
+      const tbody = document.getElementsByTagName("tbody")[0];
+      const resultItems = tbody.getElementsByTagName("tr");  
+      if (resultItems.length === 0) {
         Controller.showResults(false);
         Controller.showNoResultsMessage(true);
       }
